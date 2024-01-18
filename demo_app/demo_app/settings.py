@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from cassandra import ConsistencyLevel
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -31,6 +33,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'auth_service',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,9 +78,33 @@ WSGI_APPLICATION = 'demo_app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'prod_cat',
+        'USER': 'demo_app_user',
+        'PASSWORD': 'demo_pass',
+        'HOST': 'localhost',
+        'PORT': '3306'
+    },
+    'cassandra': {
+        'ENGINE': 'django.db.backends.cassandra',
+        'NAME': 'demo_app_keyspace',
+        'USER': 'demo_app_product',
+        'PASSWORD': 'demo_pass',
+        'HOST': 'localhost',
+        'OPTIONS': {
+            'replication': {
+                'strategy_class': 'SimpleStrategy',
+                'replication_factor': 1,
+            },
+            'connection': {
+                'consistency': ConsistencyLevel.ONE,
+                'retry_connect': True,
+            },
+            'session': {
+                'default_timeout': 10,
+            },
+        },
+    },
 }
 
 
