@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_container
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: demo_app
+      MYSQL_USER: demo_app_user
+      MYSQL_PASSWORD: demo_pass
+    command: [ "--init-file", "/docker-entrypoint-initdb.d/init_mysql.sql" ]
+    volumes:
+      - ./init_mysql.sql:/docker-entrypoint-initdb.d/init_mysql.sql
+
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra_container
+    ports:
+      - 9042:9042
+    environment:
+      CASSANDRA_CLUSTER_NAME: TestCluster
+      CASSANDRA_SEEDS: cassandra
+      CASSANDRA_LISTEN_ADDRESS: auto
+      CASSANDRA_RPC_ADDRESS: 0.0.0.0
+    volumes:
+      - ./init_cassandra.cql:/docker-entrypoint-initdb.d/init_cassandra.cql
+
+#    restart: always
+
+  demo_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: demo_app_container
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+      - cassandra
+    links:
+      - mysql
+      - cassandra
+    ports:
+      - 5000:5000
+    restart: always

@@ -47,7 +47,6 @@ def create_products(request):
             product.save()
             return JsonResponse({'message': 'Product successfully created.'}, status=status.HTTP_201_CREATED)
         except Exception as e:
-            print(str(e))
             JsonResponse({'error': 'Internal server error.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         JsonResponse({'error': 'Invalid request method.'}, status=status.HTTP_400_BAD_REQUEST)

@@ -10,8 +10,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.contrib.auth.hashers import make_password
 from .models import User
-from .serializers import UserSerializer
-from .decorators import validate_jwt_token
 
 
 @api_view(['POST'])

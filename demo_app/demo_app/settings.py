@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-c1c!ua^==4y=$t869g^!vn5f!9omrh5qig_&b#0zpp1o%6m&hz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'localhost']
 
 
 # Application definition
@@ -84,13 +84,13 @@ DATABASES = {
         'NAME': 'demo_app',
         'USER': 'demo_app_user',
         'PASSWORD': 'demo_pass',
-        'HOST': 'localhost',
+        'HOST': 'mysql_container',
         'PORT': '3306'
     },
     'cassandra': {
         'ENGINE': 'django_cassandra_engine',
         'NAME': 'demo_app_keyspace',
-        'HOST': 'localhost',
+        'HOST': 'cassandra_container',
         'OPTIONS': {
             'replication': {
                 'strategy_class': 'SimpleStrategy',
