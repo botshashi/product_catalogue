@@ -1,14 +1,17 @@
+import jwt
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework import status
-from .models import User
-import jwt
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.contrib.auth.hashers import make_password
+from .models import User
+from .serializers import UserSerializer
+from .decorators import validate_jwt_token
 
 
 @api_view(['POST'])
@@ -27,7 +30,7 @@ def register(request):
         else:
             try:
                 validate_email(email)
-            except ValidationError:
+            except ValidationError as e:
                 return JsonResponse({'error': 'Invalid email address.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Basic user validation
@@ -53,18 +56,38 @@ def register(request):
             return JsonResponse({'message': 'User successfully registered.'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            JsonResponse({'error': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
+            print(str(e))
+            JsonResponse({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        JsonResponse({'error': 'Invalid request method.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
+@csrf_exempt
 def login(request):
     if request.method == 'POST':
         username = request.data.get('username')
         password = request.data.get('password')
-        user = User.objects.get(username=username)
+        if not username or not password:
+            return JsonResponse({'error': 'username or password cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.using('default').get(username=username)
+            if user and check_password(password, user.password):
+                token = jwt.encode({'id': user.user_id}, settings.SECRET_KEY, algorithm='HS256')
+                return JsonResponse({'token': token}, status=status.HTTP_200_OK)
+            else:
+                return JsonResponse({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User does not exists.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return JsonResponse({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        JsonResponse({'error': 'Invalid request method.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if user and check_password(password, user.password):
-            token = jwt.encode({'id': user.id}, settings.SECRET_KEY, algorithm='HS256')
-            return Response({'token': token}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['GET'])
+@validate_jwt_token
+def users(request):
+    if request.method == 'GET':
+        user = UserSerializer(User.objects.using('default').all(), many=True)
+        return JsonResponse({'users': user.data}, status=status.HTTP_200_OK)

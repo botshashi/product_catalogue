@@ -34,6 +34,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'auth_service',
+    'product_catalogue_service',
+    'django_cassandra_engine',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -79,17 +81,15 @@ WSGI_APPLICATION = 'demo_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'prod_cat',
+        'NAME': 'demo_app',
         'USER': 'demo_app_user',
         'PASSWORD': 'demo_pass',
         'HOST': 'localhost',
         'PORT': '3306'
     },
     'cassandra': {
-        'ENGINE': 'django.db.backends.cassandra',
+        'ENGINE': 'django_cassandra_engine',
         'NAME': 'demo_app_keyspace',
-        'USER': 'demo_app_product',
-        'PASSWORD': 'demo_pass',
         'HOST': 'localhost',
         'OPTIONS': {
             'replication': {
