@@ -83,11 +83,3 @@ def login(request):
             return JsonResponse({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         JsonResponse({'error': 'Invalid request method.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-@validate_jwt_token
-def users(request):
-    if request.method == 'GET':
-        user = UserSerializer(User.objects.using('default').all(), many=True)
-        return JsonResponse({'users': user.data}, status=status.HTTP_200_OK)
